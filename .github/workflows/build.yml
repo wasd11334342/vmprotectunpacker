@@ -1,0 +1,40 @@
+name: Build EXE
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Install Capstone
+      run: |
+        vcpkg install capstone:x64-windows
+      shell: powershell
+
+    - name: Configure
+      run: |
+        cmake -B build `
+          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+      shell: powershell
+
+    - name: Build
+      run: |
+        cmake --build build --config Release
+      shell: powershell
+
+    - name: Upload EXE
+      uses: actions/upload-artifact@v4
+      with:
+        name: vmprotectunpacker
+        path: build/Release/*.exe
